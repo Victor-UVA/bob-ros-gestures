@@ -5,6 +5,7 @@ faceClassifier = cv2.CascadeClassifier(
     "/usr/share/opencv4/haarcascades/haarcascade_frontalface_default.xml"
 )
 
+#detects any faces in an image and draws a green bounding box around them
 def detectFace(image):
     grayImage = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     face = faceClassifier.detectMultiScale(

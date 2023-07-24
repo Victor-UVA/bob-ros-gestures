@@ -24,6 +24,7 @@ class FaceOrientation(Enum):
     RIGHT = 2
     CENTER = 3
 
+#this is a ROS node based on code from ml_face_detector.py
 class FaceMeshTransformer(Node):
     def __init__(self):
         super().__init__("face_mesh_transformer")

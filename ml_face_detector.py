@@ -14,23 +14,24 @@ def showResult(result: FaceDetectorResult, output_image: mp.Image, timestamp_ms:
     global lastResult
     lastResult = result
 
+#initialize face detector options
 options = FaceDetectorOptions(
     base_options = BaseOptions(model_asset_path="blaze_face_short_range.tflite"),
     running_mode = VisionRunningMode.LIVE_STREAM,
     result_callback = showResult
 )
 
-capture = cv2.VideoCapture(0)
+capture = cv2.VideoCapture(0) #get video source
 with FaceDetector.create_from_options(options) as detector:
     while True:
-        ret, frame = capture.read()
-        time = int(capture.get(cv2.CAP_PROP_POS_MSEC))
-        mp_image = mp.Image(image_format = mp.ImageFormat.SRGB, data=frame)
-        detector.detect_async(mp_image, time)
+        ret, frame = capture.read() #get frame
+        time = int(capture.get(cv2.CAP_PROP_POS_MSEC)) #get time
+        mp_image = mp.Image(image_format = mp.ImageFormat.SRGB, data=frame) #transform into MediaPipe image format
+        detector.detect_async(mp_image, time) #detect face in image
 
         finalImage = frame
         if lastResult != None:
-            for detection in lastResult.detections:
+            for detection in lastResult.detections: #draw a green bounding box around every detected face
                 box = detection.bounding_box
                 x = box.origin_x
                 y = box.origin_y

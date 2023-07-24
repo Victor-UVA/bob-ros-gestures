@@ -17,16 +17,18 @@ def updateResults(result: HandLandmarkerResult, output_image: mp.Image, timestam
     global lastResult
     lastResult = result
 
+#initialize hand landmarker options
 options = HandLandmarkerOptions(
     base_options = BaseOptions(model_asset_path="hand_landmarker.task"),
     running_mode = VisionRunningMode.LIVE_STREAM,
     result_callback = updateResults
 )
 
-#hand bounding box
+#helper function for creating the hand bounding box
 def transformByScale(coord, center, scale):
     return int((coord - center) * scale + center)
 
+#find coordinates for the hand bounding box
 def getHandBoxCoords(landmarkList):
     xList = [landmark.x for landmark in landmarkList]
     yList = [landmark.y for landmark in landmarkList]
@@ -36,7 +38,7 @@ def getHandBoxCoords(landmarkList):
     yMin = min(yList) * height
     yMax = max(yList) * height
 
-    #processing
+    #processing (make the box a bit bigger in all directions)
     scale = 1.2
     xCenter = (xMin + xMax)/2
     yCenter = (yMin + yMax)/2
@@ -47,13 +49,14 @@ def getHandBoxCoords(landmarkList):
 
     return (xMin,yMin), (xMax,yMax)
 
-#hand orientation
+#rough hand orientation
 class HandOrientation(Enum):
     UP = 1
     DOWN = 2
     LEFT = 3
     RIGHT = 4
 
+#get rough hand orientation from landmarks
 def calculateHandOrientation(landmarkList):
     point0 = landmarkList[0]
     point9 = landmarkList[9]
@@ -74,11 +77,12 @@ def calculateHandOrientation(landmarkList):
 
     return orientation
 
-#finger position and finger counting
+#finger position
 class FingerPosition(Enum):
     OPEN = 1
     CLOSED = 2
 
+#calculate finger position for a given finger
 def calculateFingerPosition(basePoint, closePoint, farPoint):
     xDeltaClose = closePoint.x - basePoint.x
     yDeltaClose = closePoint.y - basePoint.y
@@ -93,6 +97,7 @@ def calculateFingerPosition(basePoint, closePoint, farPoint):
     else:
         return FingerPosition.OPEN
 
+#calculate finger positions for all fingers
 def calculateFingerPositions(landmarkList):
     basePoint = landmarkList[0]
 
@@ -119,6 +124,7 @@ def calculateFingerPositions(landmarkList):
 
     return (littlePosition, ringPosition, middlePosition, indexPosition, thumbPosition)
 
+#number of raised fingers
 class Count(Enum):
     ZERO = 0
     ONE = 1
@@ -128,6 +134,7 @@ class Count(Enum):
     FIVE = 5
     UNKNOWN = 6
 
+#what hand positions correspond to what finger counts
 countDict = {
     (FingerPosition.OPEN, FingerPosition.OPEN, FingerPosition.OPEN, FingerPosition.OPEN, FingerPosition.OPEN): Count.FIVE,
 
@@ -147,6 +154,7 @@ countDict = {
     (FingerPosition.CLOSED, FingerPosition.CLOSED, FingerPosition.CLOSED, FingerPosition.CLOSED, FingerPosition.CLOSED): Count.ZERO
 }
 
+#match finger positions to count
 def matchFingerPositionsToCount(fingerPositionProfile):
     try:
         count = countDict[fingerPositionProfile]
@@ -161,6 +169,7 @@ class ThumbOrientation(Enum):
     LEFT = 3
     RIGHT = 4
 
+#get orientation for the thumb specifically
 def calculateThumbOrientation(landmarkList):
     point1 = landmarkList[1]
     point4 = landmarkList[4]
@@ -189,6 +198,7 @@ class Gesture(Enum):
     FIST = 4
     UNKNOWN = 5
 
+#match gesture using some basic logic
 def matchGesture(landmarkList):
     fingerPositionProfile = calculateFingerPositions(landmarkList)
     fingerCount = sum([1 if x == FingerPosition.OPEN else 0 for x in fingerPositionProfile])
@@ -208,13 +218,13 @@ def matchGesture(landmarkList):
 
     return gesture
 
-capture = cv2.VideoCapture(0)
+capture = cv2.VideoCapture(0) #get video source
 with HandLandmarker.create_from_options(options) as landmarker:
     while True:
-        ret, frame = capture.read()
-        time = int(capture.get(cv2.CAP_PROP_POS_MSEC))
-        mp_image = mp.Image(image_format = mp.ImageFormat.SRGB, data=frame)
-        landmarker.detect_async(mp_image, time)
+        ret, frame = capture.read() #gte frame
+        time = int(capture.get(cv2.CAP_PROP_POS_MSEC)) #get time
+        mp_image = mp.Image(image_format = mp.ImageFormat.SRGB, data=frame) #transform into MediaPipe image format
+        landmarker.detect_async(mp_image, time) #detect hand landmarks in image
 
         finalImage = frame
         if lastResult != None and lastResult.hand_landmarks != []:

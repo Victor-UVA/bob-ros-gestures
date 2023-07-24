@@ -18,31 +18,38 @@ def showResult(result: FaceLandmarkerResult, output_image: mp.Image, timestamp_m
     global lastResult
     lastResult = result
 
+#initialize face landmarker options
 options = FaceLandmarkerOptions(
     base_options = BaseOptions(model_asset_path="face_landmarker.task"),
     running_mode = VisionRunningMode.LIVE_STREAM,
     result_callback = showResult
 )
 
+#create Enum of various face orientations
 class FaceOrientation(Enum):
     LEFT = 1
     RIGHT = 2
     CENTER = 3
 
+#use facial landmarks to estimate the approximate face orientation
 def getRoughFaceOrientation(landmarkList):
-    leftPoint = landmarkList[234]
-    rightPoint = landmarkList[454]
-    zDelta = rightPoint.z - leftPoint.z
+    leftPoint = landmarkList[234] #get the 3d location of a point on the left side of the face
+    rightPoint = landmarkList[454] #get the 3d location of the smae point on the right side of the face
+    zDelta = rightPoint.z - leftPoint.z #get the difference in closeness between the left and the right sides of the face
     print(zDelta)
 
-    orientation = FaceOrientation.CENTER
+    #classify face orientation based on relative distance
     if abs(zDelta) >= 0.08:
         if zDelta <= 0:
             orientation = FaceOrientation.RIGHT
         else:
             orientation = FaceOrientation.LEFT
+    else:
+        orientation = FaceOrientation.CENTER
+    
     return orientation
 
+#do some math to get the face pitch and yaw
 def getPreciseFaceOrientation(landmarkList, image):
     height, width, _ = image.shape
     face2d = []
@@ -73,16 +80,16 @@ def getPreciseFaceOrientation(landmarkList, image):
     print("pitch", pitch)
     print("yaw  ", yaw)
 
-capture = cv2.VideoCapture(0)
+capture = cv2.VideoCapture(0) #get video source
 with FaceLandmarker.create_from_options(options) as landmarker:
     while True:
-        ret, frame = capture.read()
-        time = int(capture.get(cv2.CAP_PROP_POS_MSEC))
-        mp_image = mp.Image(image_format = mp.ImageFormat.SRGB, data=frame)
-        landmarker.detect_async(mp_image, time)
+        ret, frame = capture.read() #get frame
+        time = int(capture.get(cv2.CAP_PROP_POS_MSEC)) #get time
+        mp_image = mp.Image(image_format = mp.ImageFormat.SRGB, data=frame) #transform into MediaPipe image format
+        landmarker.detect_async(mp_image, time) #detect face landmarks in image
 
         finalImage = frame
-        if lastResult != None and lastResult.face_landmarks != []:
+        if lastResult != None and lastResult.face_landmarks != []: #draw all face landmarks
             landmarkList = lastResult.face_landmarks[0]
             normalizedLandmarks = landmark_pb2.NormalizedLandmarkList()
             normalizedLandmarks.landmark.extend([
