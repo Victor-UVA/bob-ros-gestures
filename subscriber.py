@@ -13,6 +13,7 @@ FaceDetectorOptions = mp.tasks.vision.FaceDetectorOptions
 FaceDetectorResult = mp.tasks.vision.FaceDetectorResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 
+#this is a ROS node based on code from ml_face_detector.py
 class ImageSubscriber(Node):
     def __init__(self):
         super().__init__("image_subscriber")
