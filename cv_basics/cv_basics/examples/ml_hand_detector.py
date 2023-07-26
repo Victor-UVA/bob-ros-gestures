@@ -19,7 +19,7 @@ def updateResults(result: HandLandmarkerResult, output_image: mp.Image, timestam
 
 #initialize hand landmarker options
 options = HandLandmarkerOptions(
-    base_options = BaseOptions(model_asset_path="hand_landmarker.task"),
+    base_options = BaseOptions(model_asset_path="../models/hand_landmarker.task"),
     running_mode = VisionRunningMode.LIVE_STREAM,
     result_callback = updateResults
 )
@@ -203,6 +203,7 @@ def matchGesture(landmarkList):
     fingerPositionProfile = calculateFingerPositions(landmarkList)
     fingerCount = sum([1 if x == FingerPosition.OPEN else 0 for x in fingerPositionProfile])
     thumbOpen = (fingerPositionProfile[4] == FingerPosition.OPEN)
+    print(thumbOpen)
     thumbOrientation = calculateThumbOrientation(landmarkList)
 
     gesture = Gesture.UNKNOWN
@@ -221,8 +222,9 @@ def matchGesture(landmarkList):
 capture = cv2.VideoCapture(0) #get video source
 with HandLandmarker.create_from_options(options) as landmarker:
     while True:
-        ret, frame = capture.read() #gte frame
+        ret, frame = capture.read() #get frame
         time = int(capture.get(cv2.CAP_PROP_POS_MSEC)) #get time
+        print("time", time)
         mp_image = mp.Image(image_format = mp.ImageFormat.SRGB, data=frame) #transform into MediaPipe image format
         landmarker.detect_async(mp_image, time) #detect hand landmarks in image
 

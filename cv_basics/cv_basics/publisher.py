@@ -7,12 +7,16 @@ import cv2
 class ImagePublisher(Node):
     def __init__(self):
         super().__init__("image_publisher")
-        self.publisher_ = self.create_publisher(Image, "video_frames", 10) #10 message queue
+        self.declare_parameter("source", 0)
+        source = self.get_parameter("source").value
 
-        timer_period = 0.1
-        self.timer = self.create_timer(timer_period, self.timer_callback)
-        self.cap = cv2.VideoCapture(0)
+        self.publisher_ = self.create_publisher(Image, "camera_" + str(source), 10)
+
+        self.cap = cv2.VideoCapture(source)
         self.br = CvBridge()
+        fps = int(self.cap.get(cv2.CAP_PROP_FPS))
+        timer_period = 1/fps
+        self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def timer_callback(self):
         ret, frame = self.cap.read()

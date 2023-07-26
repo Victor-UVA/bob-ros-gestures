@@ -38,7 +38,7 @@ class FaceMeshTransformer(Node):
         self.pub_nose_depth = self.create_publisher(Float64, "nose_depth", 10)
 
         self.options = FaceLandmarkerOptions(
-            base_options = BaseOptions(model_asset_path="/home/evan/Desktop/Programming/ROS/ros2tutorials/src/cv_basics/cv_basics/face_landmarker.task"),
+            base_options = BaseOptions(model_asset_path="../models/face_landmarker.task"),
             running_mode = VisionRunningMode.IMAGE
         )
         
