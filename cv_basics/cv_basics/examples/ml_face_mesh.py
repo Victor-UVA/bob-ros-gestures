@@ -20,7 +20,7 @@ def showResult(result: FaceLandmarkerResult, output_image: mp.Image, timestamp_m
 
 #initialize face landmarker options
 options = FaceLandmarkerOptions(
-    base_options = BaseOptions(model_asset_path="face_landmarker.task"),
+    base_options = BaseOptions(model_asset_path="../models/face_landmarker.task"),
     running_mode = VisionRunningMode.LIVE_STREAM,
     result_callback = showResult
 )
@@ -34,7 +34,7 @@ class FaceOrientation(Enum):
 #use facial landmarks to estimate the approximate face orientation
 def getRoughFaceOrientation(landmarkList):
     leftPoint = landmarkList[234] #get the 3d location of a point on the left side of the face
-    rightPoint = landmarkList[454] #get the 3d location of the smae point on the right side of the face
+    rightPoint = landmarkList[454] #get the 3d location of the same point on the right side of the face
     zDelta = rightPoint.z - leftPoint.z #get the difference in closeness between the left and the right sides of the face
     print(zDelta)
 

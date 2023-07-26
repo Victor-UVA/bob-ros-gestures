@@ -16,7 +16,7 @@ def showResult(result: FaceDetectorResult, output_image: mp.Image, timestamp_ms:
 
 #initialize face detector options
 options = FaceDetectorOptions(
-    base_options = BaseOptions(model_asset_path="blaze_face_short_range.tflite"),
+    base_options = BaseOptions(model_asset_path="../models/blaze_face_short_range.tflite"),
     running_mode = VisionRunningMode.LIVE_STREAM,
     result_callback = showResult
 )
