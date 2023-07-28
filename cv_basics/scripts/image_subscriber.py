@@ -1,5 +1,6 @@
-import rclpy
-from rclpy.node import Node
+#!/usr/bin/env python
+
+import rospy
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
@@ -8,16 +9,19 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from mediapipe.framework.formats import landmark_pb2
 from mediapipe import solutions
+import rospkg
 import time
-from ament_index_python.packages import get_package_prefix
+# from ament_index_python.packages import get_package_prefix
 
-from cv_basics_messages.msg import FaceDetection
-from cv_basics_messages.msg import FaceDetectionArray
-from cv_basics_messages.msg import Landmark
-from cv_basics_messages.msg import FaceLandmarkArray
-from cv_basics_messages.msg import FaceLandmarkArrayArray
-from cv_basics_messages.msg import Hand
-from cv_basics_messages.msg import HandArray
+from cv_basics.msg import FaceDetection
+from cv_basics.msg import FaceDetectionArray
+from cv_basics.msg import Landmark
+from cv_basics.msg import FaceLandmarkArray
+from cv_basics.msg import FaceLandmarkArrayArray
+from cv_basics.msg import Hand
+from cv_basics.msg import HandArray
+
+rospack = rospkg.RosPack()
 
 #basics
 BaseOptions = mp.tasks.BaseOptions
@@ -39,73 +43,77 @@ HandLandmarkerOptions = mp.tasks.vision.HandLandmarkerOptions
 HandLandmarkerResult = mp.tasks.vision.HandLandmarkerResult
 
 #get the path to the necessary helper files
-ros_path = get_package_prefix("cv_basics")
-ros_path = ros_path[:ros_path.index("install")]
-cv_path = ros_path + "src/cv_basics/cv_basics/"
 
-class ImageSubscriber(Node):
+
+ros_path = rospack.get_path("cv_basics")
+# ros_path = ros_path[:ros_path.index("devel")]
+cv_path = ros_path
+
+class ImageSubscriber():
     def __init__(self):
-        super().__init__("image_subscriber")
-        self.declare_parameter("camera_topic", "camera_0")
-        camera_topic = self.get_parameter("camera_topic").value
+        # super().__init__("image_subscriber")
+        rospy.set_param("camera_topic", "camera_0")
+        camera_topic = rospy.get_param("camera_topic")
 
-        self.declare_parameter("display", False)
-        self.display = self.get_parameter("display").value
+        rospy.set_param("display", True)
+        self.display = rospy.get_param("display")
 
-        self.declare_parameter("detect_faces", False)
-        self.declare_parameter("landmark_faces", False)
-        self.declare_parameter("landmark_hands", False)
+        self.br = CvBridge()
 
-        self.detect_faces = self.get_parameter("detect_faces").value
-        self.landmark_faces = self.get_parameter("landmark_faces").value
-        self.landmark_hands = self.get_parameter("landmark_hands").value
+        # if self.display:
+        # 	print('we are in!!!')
+        # else:
+        # 	print('we are so not in')
 
-        self.subscription = self.create_subscription(
-            Image,
-            camera_topic,
-            self.generic_callback,
-            10
-        )
+        rospy.set_param("detect_faces", True)
+        rospy.set_param("landmark_faces", True)
+        rospy.set_param("landmark_hands", True)
+
+        self.detect_faces = rospy.get_param("detect_faces")
+        self.landmark_faces = rospy.get_param("landmark_faces")
+        self.landmark_hands = rospy.get_param("landmark_hands")
+
+        self.subscription = rospy.Subscriber('/webcam', Image, self.generic_callback)
 
         if self.detect_faces:
             self.face_detector_options = FaceDetectorOptions(
-                base_options = BaseOptions(model_asset_path=(cv_path + "models/blaze_face_short_range.tflite")),
+                base_options = BaseOptions(model_asset_path=(cv_path + "/scripts/models/blaze_face_short_range.tflite")),
                 running_mode = VisionRunningMode.LIVE_STREAM,
                 result_callback = self.update_face_detector_result
             )
-            self.face_detection_publisher = self.create_publisher(FaceDetectionArray, "face_detection_results", 10)
+            self.face_detection_publisher = rospy.Publisher("/face_detection_results", FaceDetectionArray, queue_size = 10)
             self.face_detector_result = None
             self.face_detector_helper = FaceDetector.create_from_options(self.face_detector_options)
         
         if self.landmark_faces:
-            self.declare_parameter("num_faces", 1)
-            num_faces = self.get_parameter("num_faces").value
+            rospy.set_param("num_faces", 1)
+            num_faces = rospy.get_param("num_faces")
 
             self.face_landmarker_options = FaceLandmarkerOptions(
-                base_options = BaseOptions(model_asset_path=(cv_path + "models/face_landmarker.task")),
+                base_options = BaseOptions(model_asset_path=(cv_path + "/scripts/models/face_landmarker.task")),
                 running_mode = VisionRunningMode.LIVE_STREAM,
                 result_callback = self.update_face_landmarker_result,
                 num_faces = num_faces
             )
-            self.face_landmark_publisher = self.create_publisher(FaceLandmarkArrayArray, "face_landmark_results", 10)
+            self.face_landmark_publisher = rospy.Publisher("/face_landmark_results", FaceLandmarkArrayArray, queue_size = 10)
             self.face_landmarker_result = None
             self.face_landmarker_helper = FaceLandmarker.create_from_options(self.face_landmarker_options)
 
         if self.landmark_hands:
-            self.declare_parameter("num_hands", 1)
-            num_hands = self.get_parameter("num_hands").value
+            rospy.set_param("num_hands", 1)
+            num_hands = rospy.get_param("num_hands")
 
             self.hand_landmarker_options = HandLandmarkerOptions(
-                base_options = BaseOptions(model_asset_path=(cv_path + "models/hand_landmarker.task")),
+                base_options = BaseOptions(model_asset_path=(cv_path + "/scripts/models/hand_landmarker.task")),
                 running_mode = VisionRunningMode.LIVE_STREAM,
                 result_callback = self.update_hand_landmarker_result,
                 num_hands = num_hands
             )
-            self.hand_landmark_publisher = self.create_publisher(HandArray, "hand_landmark_results", 10)
+            self.hand_landmark_publisher = rospy.Publisher("/hand_landmark_results", HandArray, queue_size = 10)
             self.hand_landmarker_result = None
             self.hand_landmarker_helper = HandLandmarker.create_from_options(self.hand_landmarker_options)
 
-        self.br = CvBridge()
+        
 
     def update_face_detector_result(self, result: FaceDetectorResult, output_image: mp.Image, timestamp_ms: int):
         self.face_detector_result = result
@@ -244,12 +252,14 @@ class ImageSubscriber(Node):
             cv2.imshow("camera", finalImage)
             cv2.waitKey(1)
 
-def main(args=None):
-    rclpy.init(args=args)
-    imageSubscriber = ImageSubscriber()
-    rclpy.spin(imageSubscriber)
-    imageSubscriber.destroy_node()
-    rclpy.shutdown()
 
-if __name__ == "__main__":
-    main()
+def main(args=None):
+    rospy.init_node("image_subscriber", anonymous=False)
+    imageSubscriber = ImageSubscriber()
+    rospy.spin()
+    # imageSubscriber.destroy_node()
+    # rospy.shutdown()
+
+
+if __name__ == '__main__':
+	main()

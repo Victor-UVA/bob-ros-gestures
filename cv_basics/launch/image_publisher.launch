@@ -1,0 +1,6 @@
+<launch>
+
+<node name="webcam" pkg="cv_basics" type="image_publisher.py" output="screen" respawn="true"/>
+
+
+</launch>
