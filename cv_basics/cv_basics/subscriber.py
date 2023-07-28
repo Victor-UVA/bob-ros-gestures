@@ -106,7 +106,6 @@ class ImageSubscriber(Node):
             self.hand_landmarker_helper = HandLandmarker.create_from_options(self.hand_landmarker_options)
 
         self.br = CvBridge()
-        self.capture = cv2.VideoCapture(0)
 
     def update_face_detector_result(self, result: FaceDetectorResult, output_image: mp.Image, timestamp_ms: int):
         self.face_detector_result = result
