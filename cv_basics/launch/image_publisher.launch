@@ -1,6 +1,8 @@
 <launch>
 
-<node name="webcam" pkg="cv_basics" type="image_publisher.py" output="screen" respawn="true"/>
+<node name="webcam" pkg="cv_basics" type="image_publisher.py" output="screen"></node>
+<node name="image_subscriber" pkg="cv_basics" type="image_subscriber.py" output="screen"></node>
+<node name="cv_gesture" pkg="cv_basics" type="cv_gesture.py" output="screen"></node>
 
 
 </launch>

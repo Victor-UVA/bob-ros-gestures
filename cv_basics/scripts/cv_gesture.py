@@ -13,6 +13,7 @@ latch = False
 
 
 def wave(detections):
+
     global latch
     for face in detections.detections:
         print(face.score, latch)
