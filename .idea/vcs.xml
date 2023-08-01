@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cv_basics" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/seed_r7_ros_pkg" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/seed_smartactuator_sdk" vcs="Git" />
+  </component>
+</project>

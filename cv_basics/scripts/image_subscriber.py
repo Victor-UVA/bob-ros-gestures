@@ -23,26 +23,26 @@ from cv_basics.msg import HandArray
 
 rospack = rospkg.RosPack()
 
-#basics
+# basics
 BaseOptions = mp.tasks.BaseOptions
 VisionRunningMode = mp.tasks.vision.RunningMode
 
-#face detection
+# face detection
 FaceDetector = mp.tasks.vision.FaceDetector
 FaceDetectorOptions = mp.tasks.vision.FaceDetectorOptions
 FaceDetectorResult = mp.tasks.vision.FaceDetectorResult
 
-#face landmarking
+# face landmarking
 FaceLandmarker = mp.tasks.vision.FaceLandmarker
 FaceLandmarkerOptions = mp.tasks.vision.FaceLandmarkerOptions
 FaceLandmarkerResult = mp.tasks.vision.FaceLandmarkerResult
 
-#hand landmarking
+# hand landmarking
 HandLandmarker = mp.tasks.vision.HandLandmarker
 HandLandmarkerOptions = mp.tasks.vision.HandLandmarkerOptions
 HandLandmarkerResult = mp.tasks.vision.HandLandmarkerResult
 
-#get the path to the necessary helper files
+# get the path to the necessary helper files
 
 
 ros_path = rospack.get_path("cv_basics")
@@ -215,6 +215,7 @@ class ImageSubscriber():
         currentFrame = self.br.imgmsg_to_cv2(data)
 
         image = mp.Image(image_format = mp.ImageFormat.SRGB, data=currentFrame)
+
         self.hand_landmarker_helper.detect_async(image, self.current_time)
 
         hand_array = []
