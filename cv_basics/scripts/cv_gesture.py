@@ -5,117 +5,142 @@ import sys
 import rospy
 import moveit_commander
 import moveit_msgs.msg
+import numpy
 
 from cv_basics.msg import FaceDetection
 from cv_basics.msg import FaceDetectionArray
 
 latch = False
+face_detections = [0] * 30
+group_detections = [0] * 30
 
+moveit_commander.roscpp_initialize(sys.argv)
+# rospy.init_node('move_seed_wave')
+
+robot = moveit_commander.RobotCommander
+rarm_group = moveit_commander.MoveGroupCommander('rarm')
+larm_group = moveit_commander.MoveGroupCommander('larm')
+rhand_group = moveit_commander.MoveGroupCommander('rhand')
+lhand_group = moveit_commander.MoveGroupCommander('lhand')
+# rospy.Publisher('/move_group/display_planned_path',
+# moveit_msgs.msg.DisplayTrajectory, queue_size=10)
+
+rarm_values = rarm_group.get_current_joint_values()
+larm_values = larm_group.get_current_joint_values()
+lhand_values = lhand_group.get_current_joint_values()
+rhand_values = rhand_group.get_current_joint_values()
 
 def wave(detections):
 
     global latch
+    global face_detections
+
+    for i in range(28, -1, -1):
+        face_detections[i+1] = face_detections[i]
+        group_detections[i+1] = group_detections[i]
+
+    face_detections[0] = 0
+    group_detections[0] = 0
+    group_latch = False
     for face in detections.detections:
-        print(face.score, latch)
-        if face.score >= .60 and not latch:
-            print("run")
-            latch = True
+        # print(face.score, latch)
+        if face.score >= .60:
+            face_detections[0] = 1
+            if group_latch:
+                group_detections[0] = 1
+            else:
+                group_latch = True
 
-            moveit_commander.roscpp_initialize(sys.argv)
-            # rospy.init_node('move_seed_wave')
+    face_detection_percentage = sum(face_detections)/30
+    group_detection_percentage = sum(group_detections)/30
 
-            robot = moveit_commander.RobotCommander
-            rarm_group = moveit_commander.MoveGroupCommander('rarm')
-            larm_group = moveit_commander.MoveGroupCommander('larm')
-            rhand_group = moveit_commander.MoveGroupCommander('rhand')
-            lhand_group = moveit_commander.MoveGroupCommander('lhand')
-            # rospy.Publisher('/move_group/display_planned_path',
-            #                                        moveit_msgs.msg.DisplayTrajectory, queue_size=10)
+    print("Face Detections:", face_detection_percentage)
+    print("Group Detections:", group_detection_percentage)
 
-            rarm_values = rarm_group.get_current_joint_values()
-            larm_values = larm_group.get_current_joint_values()
-            lhand_values = lhand_group.get_current_joint_values()
-            rhand_values = rhand_group.get_current_joint_values()
+    if face_detection_percentage >= 0.8 and not latch:
+        print('waving!')
+        gesture_wave()
+        latch = True
+    elif face_detection_percentage == 0.0:
+        print('reset')
+        latch = False
 
-            # Make sure arms are set down
-            rarm_values[0] = 0
-            rarm_values[1] = 0
-            rarm_values[2] = 0
-            rarm_values[3] = 0
-            rarm_values[7] = 0
-            rarm_group.set_joint_value_target(rarm_values)
-            rarm_group.set_max_velocity_scaling_factor(1)
+def gesture_wave():
+    # Make sure arms are set down
+    rarm_values[0] = 0
+    rarm_values[1] = 0
+    rarm_values[2] = 0
+    rarm_values[3] = 0
+    rarm_values[7] = 0
+    rarm_group.set_joint_value_target(rarm_values)
+    rarm_group.set_max_velocity_scaling_factor(1)
 
-            larm_values[0] = 0
-            larm_values[1] = 0
-            larm_values[2] = 0
-            larm_values[3] = 0
-            larm_values[7] = 0
-            larm_group.set_joint_value_target(larm_values)
-            larm_group.set_max_velocity_scaling_factor(1)
+    larm_values[0] = 0
+    larm_values[1] = 0
+    larm_values[2] = 0
+    larm_values[3] = 0
+    larm_values[7] = 0
+    larm_group.set_joint_value_target(larm_values)
+    larm_group.set_max_velocity_scaling_factor(1)
 
-            plan = rarm_group.plan()
-            plan2 = larm_group.plan()
-            rarm_group.go(wait=True)
-            larm_group.go(wait=True)
+    plan = rarm_group.plan()
+    plan2 = larm_group.plan()
+    rarm_group.go(wait=True)
+    larm_group.go(wait=True)
 
-            # Pick arm up and put it in wave location
-            rarm_values[0] = -0.5
-            # rarm_values[1] = -0.11
-            # rarm_values[2] = 0.228
-            rarm_values[3] = -2.1
-            rarm_values[7] = 1.5
-            rarm_group.set_joint_value_target(rarm_values)
+    # Pick arm up and put it in wave location
+    rarm_values[0] = -0.5
+    # rarm_values[1] = -0.11
+    # rarm_values[2] = 0.228
+    rarm_values[3] = -2.1
+    rarm_values[7] = 1.5
+    rarm_group.set_joint_value_target(rarm_values)
 
-            plan3 = rarm_group.plan()
-            rarm_group.go(wait=True)
+    plan3 = rarm_group.plan()
+    rarm_group.go(wait=True)
 
-            # Open hand up
-            rhand_values[0] = 1
-            rhand_group.set_joint_value_target(rhand_values)
+    # Open hand up
+    rhand_values[0] = 1
+    rhand_group.set_joint_value_target(rhand_values)
 
-            plan4 = rhand_group.plan()
-            rhand_group.go(wait=True)
+    plan4 = rhand_group.plan()
+    rhand_group.go(wait=True)
 
-            # Wave
-            rarm_values[2] = 0.2
-            rarm_group.set_joint_value_target(rarm_values)
+    # Wave
+    rarm_values[2] = 0.2
+    rarm_group.set_joint_value_target(rarm_values)
 
-            plan4 = rarm_group.plan()
-            rarm_group.go(wait=True)
+    plan4 = rarm_group.plan()
+    rarm_group.go(wait=True)
 
-            rarm_values[2] = 0
-            rarm_group.set_joint_value_target(rarm_values)
+    rarm_values[2] = 0
+    rarm_group.set_joint_value_target(rarm_values)
 
-            plan5 = rarm_group.plan()
-            rarm_group.go(wait=True)
+    plan5 = rarm_group.plan()
+    rarm_group.go(wait=True)
 
-            rarm_values[2] = 0.2
-            rarm_group.set_joint_value_target(rarm_values)
+    rarm_values[2] = 0.2
+    rarm_group.set_joint_value_target(rarm_values)
 
-            plan6 = rarm_group.plan()
-            rarm_group.go(wait=True)
+    plan6 = rarm_group.plan()
+    rarm_group.go(wait=True)
 
-            rarm_values[2] = 0
-            rarm_group.set_joint_value_target(rarm_values)
+    rarm_values[2] = 0
+    rarm_group.set_joint_value_target(rarm_values)
 
-            plan7 = rarm_group.plan()
-            rarm_group.go(wait=True)
+    plan7 = rarm_group.plan()
+    rarm_group.go(wait=True)
 
-            # Put arms back
-            rarm_values[0] = 0
-            rarm_values[1] = 0
-            rarm_values[2] = 0
-            rarm_values[3] = 0
-            rarm_values[7] = 0
-            rarm_group.set_joint_value_target(rarm_values)
+    # Put arms back
+    rarm_values[0] = 0
+    rarm_values[1] = 0
+    rarm_values[2] = 0
+    rarm_values[3] = 0
+    rarm_values[7] = 0
+    rarm_group.set_joint_value_target(rarm_values)
 
-            plan10 = rarm_group.plan()
-            rarm_group.go(wait=True)
-
-            # Finish
-            moveit_commander.roscpp_shutdown
-
+    plan10 = rarm_group.plan()
+    rarm_group.go(wait=True)
 
 def subscriber_node():
 
@@ -130,3 +155,5 @@ if __name__ == '__main__':
         subscriber_node()
     except rospy.ROSInterruptException:
         pass
+
+    moveit_commander.roscpp_shutdown

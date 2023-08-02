@@ -5,7 +5,8 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 import cv2
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(8)
+# 24 for robot chest camera
 print(cap.isOpened())
 bridge = CvBridge()
 
