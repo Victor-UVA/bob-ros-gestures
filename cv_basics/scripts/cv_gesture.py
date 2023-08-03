@@ -9,8 +9,10 @@ import numpy
 
 from cv_basics.msg import FaceDetection
 from cv_basics.msg import FaceDetectionArray
-
+ 
 latch = False
+latch2 = False
+group_latch = False
 face_detections = [0] * 30
 group_detections = [0] * 30
 
@@ -22,6 +24,7 @@ rarm_group = moveit_commander.MoveGroupCommander('rarm')
 larm_group = moveit_commander.MoveGroupCommander('larm')
 rhand_group = moveit_commander.MoveGroupCommander('rhand')
 lhand_group = moveit_commander.MoveGroupCommander('lhand')
+w_group = moveit_commander.MoveGroupCommander("waist")
 # rospy.Publisher('/move_group/display_planned_path',
 # moveit_msgs.msg.DisplayTrajectory, queue_size=10)
 
@@ -29,11 +32,17 @@ rarm_values = rarm_group.get_current_joint_values()
 larm_values = larm_group.get_current_joint_values()
 lhand_values = lhand_group.get_current_joint_values()
 rhand_values = rhand_group.get_current_joint_values()
+waist_values = w_group.get_current_joint_values()
 
-def wave(detections):
+
+def gesture(detections):
 
     global latch
+    global latch2
+    global group_latch
     global face_detections
+
+    group_latch = False
 
     for i in range(28, -1, -1):
         face_detections[i+1] = face_detections[i]
@@ -41,7 +50,7 @@ def wave(detections):
 
     face_detections[0] = 0
     group_detections[0] = 0
-    group_latch = False
+    print("length is: ", len(detections.detections))
     for face in detections.detections:
         # print(face.score, latch)
         if face.score >= .60:
@@ -64,6 +73,15 @@ def wave(detections):
     elif face_detection_percentage == 0.0:
         print('reset')
         latch = False
+
+    if len(detections.detections) >= 2 and group_detection_percentage >= 0.8 and not latch2:
+        print('bowing!')
+        gesture_bow()
+        latch2 = True
+    elif group_detection_percentage == 0.0:
+        print('group reset')
+        latch2 = False
+
 
 def gesture_wave():
     # Make sure arms are set down
@@ -142,10 +160,53 @@ def gesture_wave():
     plan10 = rarm_group.plan()
     rarm_group.go(wait=True)
 
+def gesture_bow():
+    # Set arms down
+    rarm_values[0] = 0
+    rarm_values[1] = 0
+    rarm_values[2] = 0
+    rarm_values[3] = 0
+    rarm_values[7] = 0
+    rarm_group.set_joint_value_target(rarm_values)
+    rarm_group.set_max_velocity_scaling_factor(1)
+
+    larm_values[0] = 0
+    larm_values[1] = 0
+    larm_values[2] = 0
+    larm_values[3] = 0
+    larm_values[7] = 0
+    larm_group.set_joint_value_target(larm_values)
+    larm_group.set_max_velocity_scaling_factor(1)
+
+    plan3 = rarm_group.plan()
+    plan4 = larm_group.plan()
+    rarm_group.go(wait=True)
+    larm_group.go(wait=True)
+
+    # Bow down
+    waist_values[0] = 0
+    waist_values[1] = 0.61
+    waist_values[2] = 0
+    w_group.set_joint_value_target(waist_values)
+    w_group.set_max_velocity_scaling_factor(1)
+
+    plan2 = w_group.plan()
+    w_group.go(wait=True)
+
+    # Come up
+    waist_values[0] = 0
+    waist_values[1] = 0
+    waist_values[2] = 0
+    w_group.set_joint_value_target(waist_values)
+
+    plan2 = w_group.plan()
+    w_group.go(wait=True)
+
+
 def subscriber_node():
 
     rospy.init_node("cv_gesture")
-    rospy.Subscriber('/face_detection_results', FaceDetectionArray, wave, queue_size=10)
+    rospy.Subscriber('/face_detection_results', FaceDetectionArray, gesture, queue_size=10)
 
     rospy.spin()
 
