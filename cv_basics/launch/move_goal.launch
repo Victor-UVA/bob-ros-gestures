@@ -1,0 +1,6 @@
+<launch>
+    <node name="move_goal" pkg="cv_basics" type="move_goal.py" output="screen">
+        <rosparam param="p_seq">[0, 0, 0]</rosparam>
+        <rosparam param="yea_seq">[0]</rosparam>
+    </node>
+</launch>
