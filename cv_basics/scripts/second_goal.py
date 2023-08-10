@@ -28,6 +28,8 @@ class MoveBaseSecondSeq():
         self.checker = False
         rospy.Subscriber('/first_finished', Bool, self.callback)
 
+        print("YOOOOOOOOOOOOOOOOO")
+
     def start(self):
         points_seq = rospy.get_param('second_goal/p_seq2')
         # Only yaw angle required (no rotations around x and y axes) in deg:
@@ -64,10 +66,10 @@ class MoveBaseSecondSeq():
         self.movebase_client()
 
     def callback(self, data):
-        # print(data.data, "is what we got over here!")
+        print(data.data, "is what we got over here!")
         if data.data is True:
             self.checker = True
-            # print("Starting the second node!")
+            print("Starting the second node!")
             self.start()
 
 
@@ -120,7 +122,7 @@ class MoveBaseSecondSeq():
         rospy.loginfo("Sending goal pose " + str(self.goal_cnt + 1) + " to Action Server")
         rospy.loginfo(str(self.pose_seq[self.goal_cnt]))
         self.client.send_goal(goal, self.done_cb, self.active_cb, self.feedback_cb)
-        # rospy.spin()
+        rospy.spin()
 
 
 def arms_up():
