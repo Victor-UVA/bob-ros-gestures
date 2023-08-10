@@ -12,17 +12,17 @@ from tf.transformations import quaternion_from_euler
 from std_msgs.msg import Bool
 
 
-class MoveBaseSeq():
+class MoveBaseSecondSeq():
 
     def __init__(self):
 
-        rospy.init_node('move_base_sequence')
-        self.is_finished = rospy.Publisher('/first_finished', Bool, queue_size=10)
-        self.finished = Bool()
+        self.checker = False
+        rospy.Subscriber('/first_finished', Bool, self.callback)
 
-        points_seq = rospy.get_param('move_goal/p_seq')
+    def start(self):
+        points_seq = rospy.get_param('second_goal/p_seq2')
         # Only yaw angle required (no rotations around x and y axes) in deg:
-        yaweulerangles_seq = rospy.get_param('move_goal/yea_seq')
+        yaweulerangles_seq = rospy.get_param('second_goal/yea_seq2')
         # List of goal quaternions:
         quat_seq = list()
         # List of goal poses:
@@ -31,15 +31,15 @@ class MoveBaseSeq():
 
         for yawangle in yaweulerangles_seq:
             # Unpacking the quaternion list and passing it as arguments to Quaternion message constructor
-            quat_seq.append(Quaternion(*(quaternion_from_euler(0, 0, yawangle*math.pi/180, axes='sxyz'))))
+            quat_seq.append(Quaternion(*(quaternion_from_euler(0, 0, yawangle * math.pi / 180, axes='sxyz'))))
 
         n = 3
         # Returns a list of lists [[point1], [point2],...[pointn]]
-        points = [points_seq[i:i+n] for i in range(0, len(points_seq), n)]
+        points = [points_seq[i:i + n] for i in range(0, len(points_seq), n)]
         rospy.loginfo(str(points))
         for point in points:
             # Exploit n variable to cycle in quat_seq
-            self.pose_seq.append(Pose(Point(*point), quat_seq[n-3]))
+            self.pose_seq.append(Pose(Point(*point), quat_seq[n - 3]))
             n += 1
         # Create action client
         self.client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
@@ -53,6 +53,14 @@ class MoveBaseSeq():
         rospy.loginfo("Connected to the move base server")
         rospy.loginfo("Starting goals achievements...")
         self.movebase_client()
+
+    def callback(self, data):
+        print(data.data, "is what we got over here!")
+        if data.data is True:
+            self.checker = True
+            print("Starting the second node!")
+            self.start()
+
 
     def active_cb(self):
         rospy.loginfo("Goal pose "+str(self.goal_cnt + 1)+" is now being processed by the Action Server...")
@@ -77,9 +85,8 @@ class MoveBaseSeq():
                 rospy.loginfo(str(self.pose_seq[self.goal_cnt]))
                 self.client.send_goal(next_goal, self.done_cb, self.active_cb, self.feedback_cb)
             else:
-                rospy.loginfo("First goal pose reached!")
-                self.finished = True
-                self.is_finished.publish(self.finished)
+                rospy.loginfo("Final goal pose reached!")
+                rospy.signal_shutdown("Final goal pose reached!")
                 return
 
         if status == 4:
@@ -104,11 +111,17 @@ class MoveBaseSeq():
         rospy.loginfo("Sending goal pose " + str(self.goal_cnt + 1) + " to Action Server")
         rospy.loginfo(str(self.pose_seq[self.goal_cnt]))
         self.client.send_goal(goal, self.done_cb, self.active_cb, self.feedback_cb)
-        rospy.spin()
+        # rospy.spin()
+
+def main():
+    rospy.init_node('move_base_return_sequence')
+    MoveBaseSecondSeq()
+    rospy.spin()
+
 
 
 if __name__ == '__main__':
     try:
-        MoveBaseSeq()
+        main()
     except rospy.ROSInterruptException:
         rospy.loginfo("Navigation has finished.")
