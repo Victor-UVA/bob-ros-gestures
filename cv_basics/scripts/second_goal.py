@@ -2,6 +2,8 @@
 
 import rospy
 import math
+import sys
+import moveit_commander
 # Brings in the SimpleActionClient
 import actionlib
 # Brings in the .action file and messages used by the move base action
@@ -11,6 +13,13 @@ from geometry_msgs.msg import Pose, Point, Quaternion
 from tf.transformations import quaternion_from_euler
 from std_msgs.msg import Bool
 
+
+moveit_commander.roscpp_initialize(sys.argv)
+robot = moveit_commander.RobotCommander
+rarm_group = moveit_commander.MoveGroupCommander('rarm')
+larm_group = moveit_commander.MoveGroupCommander('larm')
+rarm_values = rarm_group.get_current_joint_values()
+larm_values = larm_group.get_current_joint_values()
 
 class MoveBaseSecondSeq():
 
@@ -55,10 +64,10 @@ class MoveBaseSecondSeq():
         self.movebase_client()
 
     def callback(self, data):
-        print(data.data, "is what we got over here!")
+        # print(data.data, "is what we got over here!")
         if data.data is True:
             self.checker = True
-            print("Starting the second node!")
+            # print("Starting the second node!")
             self.start()
 
 
@@ -113,15 +122,85 @@ class MoveBaseSecondSeq():
         self.client.send_goal(goal, self.done_cb, self.active_cb, self.feedback_cb)
         # rospy.spin()
 
+
+def arms_up():
+        # Make sure arms are set down
+        rarm_values[0] = 0
+        rarm_values[1] = 0
+        rarm_values[2] = 0
+        rarm_values[3] = 0
+        rarm_values[7] = 0
+        rarm_group.set_joint_value_target(rarm_values)
+        rarm_group.set_max_velocity_scaling_factor(1)
+
+        larm_values[0] = 0
+        larm_values[1] = 0
+        larm_values[2] = 0
+        larm_values[3] = 0
+        larm_values[7] = 0
+        larm_group.set_joint_value_target(larm_values)
+        larm_group.set_max_velocity_scaling_factor(1)
+
+        plan = rarm_group.plan()
+        plan2 = larm_group.plan()
+        rarm_group.go(wait=True)
+        larm_group.go(wait=True)
+
+        # Pick arm up and put it in gesture location
+        rarm_values[0] = -0.354
+        rarm_values[1] = 0.0
+        rarm_values[2] = 0.9734
+        rarm_values[3] = -1.32
+        rarm_values[7] = -0.87895
+        rarm_group.set_joint_value_target(rarm_values)
+
+        plan3 = rarm_group.plan()
+        rarm_group.go(wait=True)
+
+        larm_values[0] = 0.0
+        larm_values[1] = 0.0
+        larm_values[2] = 0.9734
+        larm_values[3] = -1.5
+        larm_values[7] = 1.539
+        larm_group.set_joint_value_target(larm_values)
+
+        plan4 = larm_group.plan()
+        larm_group.go(wait=True)
+
+
+def arms_down():
+        # Put arms back
+        rarm_values[0] = 0
+        rarm_values[1] = 0
+        rarm_values[2] = 0
+        rarm_values[3] = 0
+        rarm_values[7] = 0
+        rarm_group.set_joint_value_target(rarm_values)
+
+        plan5 = rarm_group.plan()
+        rarm_group.go(wait=True)
+
+        larm_values[0] = 0
+        larm_values[1] = 0
+        larm_values[2] = 0
+        larm_values[3] = 0
+        larm_values[7] = 0
+        larm_group.set_joint_value_target(larm_values)
+
+        plan6 = larm_group.plan()
+        larm_group.go(wait=True)
+
+
 def main():
     rospy.init_node('move_base_return_sequence')
+    arms_up()
+    arms_down()
     MoveBaseSecondSeq()
     rospy.spin()
-
-
 
 if __name__ == '__main__':
     try:
         main()
     except rospy.ROSInterruptException:
         rospy.loginfo("Navigation has finished.")
+    moveit_commander.roscpp_shutdown
