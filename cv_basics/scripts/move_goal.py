@@ -16,9 +16,9 @@ class MoveBaseSeq():
 
     def __init__(self):
 
-        rospy.init_node('move_base_sequence')
         self.is_finished = rospy.Publisher('/first_finished', Bool, queue_size=10)
         self.finished = Bool()
+        self.finished = False
 
         points_seq = rospy.get_param('move_goal/p_seq')
         # Only yaw angle required (no rotations around x and y axes) in deg:
@@ -79,7 +79,9 @@ class MoveBaseSeq():
             else:
                 rospy.loginfo("First goal pose reached!")
                 self.finished = True
-                self.is_finished.publish(self.finished)
+                msg = Bool()
+                msg.data = self.finished
+                self.is_finished.publish(msg)
                 return
 
         if status == 4:
@@ -108,6 +110,7 @@ class MoveBaseSeq():
 
 
 if __name__ == '__main__':
+    rospy.init_node('move_base_sequence')
     try:
         MoveBaseSeq()
     except rospy.ROSInterruptException:

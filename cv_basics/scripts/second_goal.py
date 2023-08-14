@@ -68,6 +68,8 @@ class MoveBaseSecondSeq():
     def callback(self, data):
         print(data.data, "is what we got over here!")
         if data.data is True:
+            arms_up()
+            arms_down()
             self.checker = True
             print("Starting the second node!")
             self.start()
@@ -122,7 +124,7 @@ class MoveBaseSecondSeq():
         rospy.loginfo("Sending goal pose " + str(self.goal_cnt + 1) + " to Action Server")
         rospy.loginfo(str(self.pose_seq[self.goal_cnt]))
         self.client.send_goal(goal, self.done_cb, self.active_cb, self.feedback_cb)
-        rospy.spin()
+        # rospy.spin()
 
 
 def arms_up():
@@ -195,8 +197,8 @@ def arms_down():
 
 def main():
     rospy.init_node('move_base_return_sequence')
-    arms_up()
-    arms_down()
+    # arms_up()
+    # arms_down()
     MoveBaseSecondSeq()
     rospy.spin()
 
@@ -205,4 +207,4 @@ if __name__ == '__main__':
         main()
     except rospy.ROSInterruptException:
         rospy.loginfo("Navigation has finished.")
-    moveit_commander.roscpp_shutdown
+    # moveit_commander.roscpp_shutdown
