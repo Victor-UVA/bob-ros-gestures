@@ -28,8 +28,6 @@ class MoveBaseSecondSeq():
         self.checker = False
         rospy.Subscriber('/first_finished', Bool, self.callback)
 
-        print("YOOOOOOOOOOOOOOOOO")
-
     def start(self):
         points_seq = rospy.get_param('second_goal/p_seq2')
         # Only yaw angle required (no rotations around x and y axes) in deg:
