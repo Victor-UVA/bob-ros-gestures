@@ -6,15 +6,18 @@ import rospy
 import moveit_commander
 import moveit_msgs.msg
 import numpy
+import move_goal
 
+from std_msgs.msg import Bool
 from cv_basics.msg import FaceDetection
 from cv_basics.msg import FaceDetectionArray
  
 latch = False
 latch2 = False
 group_latch = False
-face_detections = [0] * 30
-group_detections = [0] * 30
+msg = False
+face_detections = [0] * 60
+# group_detections = [0] * 60
 
 moveit_commander.roscpp_initialize(sys.argv)
 # rospy.init_node('move_seed_wave')
@@ -34,6 +37,8 @@ lhand_values = lhand_group.get_current_joint_values()
 rhand_values = rhand_group.get_current_joint_values()
 waist_values = w_group.get_current_joint_values()
 
+pub = rospy.Publisher('/is_ready_to_move', Bool, queue_size=10)
+
 
 def gesture(detections):
 
@@ -44,27 +49,27 @@ def gesture(detections):
 
     group_latch = False
 
-    for i in range(28, -1, -1):
+    for i in range(58, -1, -1):
         face_detections[i+1] = face_detections[i]
-        group_detections[i+1] = group_detections[i]
+        # group_detections[i+1] = group_detections[i]
 
     face_detections[0] = 0
-    group_detections[0] = 0
-    print("length is: ", len(detections.detections))
+    # group_detections[0] = 0
+    # print("length is: ", len(detections.detections))
     for face in detections.detections:
         # print(face.score, latch)
         if face.score >= .60:
             face_detections[0] = 1
-            if group_latch:
-                group_detections[0] = 1
-            else:
-                group_latch = True
+            # if group_latch:
+            #     group_detections[0] = 1
+            # else:
+            #     group_latch = True
 
-    face_detection_percentage = sum(face_detections)/30
-    group_detection_percentage = sum(group_detections)/30
+    face_detection_percentage = sum(face_detections)/60
+    # group_detection_percentage = sum(group_detections)/30
 
-    print("Face Detections:", face_detection_percentage)
-    print("Group Detections:", group_detection_percentage)
+    # print("Face Detections:", face_detection_percentage)
+    # print("Group Detections:", group_detection_percentage)
 
     if face_detection_percentage >= 0.8 and not latch:
         print('waving!')
@@ -74,16 +79,18 @@ def gesture(detections):
         print('reset')
         latch = False
 
-    if len(detections.detections) >= 2 and group_detection_percentage >= 0.8 and not latch2:
-        print('bowing!')
-        gesture_bow()
-        latch2 = True
-    elif group_detection_percentage == 0.0:
-        print('group reset')
-        latch2 = False
+    # if len(detections.detections) >= 2 and group_detection_percentage >= 0.8 and not latch2:
+    #     print('bowing!')
+    #     gesture_bow()
+    #     latch2 = True
+    # elif group_detection_percentage == 0.0:
+    #     print('group reset')
+    #     latch2 = False
 
 
 def gesture_wave():
+    global msg
+
     # Make sure arms are set down
     rarm_values[0] = 0
     rarm_values[1] = 0
@@ -143,11 +150,11 @@ def gesture_wave():
     plan6 = rarm_group.plan()
     rarm_group.go(wait=True)
 
-    rarm_values[2] = 0
-    rarm_group.set_joint_value_target(rarm_values)
+    # rarm_values[2] = 0
+    # rarm_group.set_joint_value_target(rarm_values)
 
-    plan7 = rarm_group.plan()
-    rarm_group.go(wait=True)
+    # plan7 = rarm_group.plan()
+    # rarm_group.go(wait=True)
 
     # Put arms back
     rarm_values[0] = 0
@@ -159,6 +166,9 @@ def gesture_wave():
 
     plan10 = rarm_group.plan()
     rarm_group.go(wait=True)
+
+    msg = True
+    pub.publish(msg)
 
 def gesture_bow():
     # Set arms down
