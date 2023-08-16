@@ -32,6 +32,7 @@ class MoveBaseSeq():
         rospy.loginfo("Feedback for goal pose "+str(self.goal_cnt+1)+" received")
 
     def done_cb(self, status, result):
+        self.finished = False
         self.goal_cnt += 1
         if status == 2:
             rospy.loginfo("Goal pose " + str(
@@ -50,10 +51,10 @@ class MoveBaseSeq():
             else:
                 rospy.loginfo("First goal pose reached!")
                 self.finished = True
-                msg = Bool()
-                msg.data = self.finished
-                self.is_finished.publish(msg)
-                return
+            msg = Bool()
+            msg.data = self.finished
+            self.is_finished.publish(msg)
+                # return
 
         if status == 4:
             rospy.loginfo("Goal pose " + str(self.goal_cnt) + " was aborted by the Action Server")

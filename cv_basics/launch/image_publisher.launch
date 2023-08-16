@@ -10,7 +10,7 @@
         <rosparam param="yea_seq">[180]</rosparam>
     </node>
 
-    <node name="second_goal" pkg="cv_basics" type="second_goal.py" output="screen" required="true">
+    <node name="second_goal" pkg="cv_basics" type="second_goal.py" output="screen">
         <rosparam param="p_seq2">[0, 0, 0]</rosparam>
         <rosparam param="yea_seq2">[0]</rosparam>
     </node>

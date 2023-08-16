@@ -97,7 +97,7 @@ class MoveBaseSecondSeq():
                 self.client.send_goal(next_goal, self.done_cb, self.active_cb, self.feedback_cb)
             else:
                 rospy.loginfo("Final goal pose reached!")
-                rospy.signal_shutdown("Final goal pose reached!")
+                # rospy.signal_shutdown("Final goal pose reached!")
                 return
 
         if status == 4:
