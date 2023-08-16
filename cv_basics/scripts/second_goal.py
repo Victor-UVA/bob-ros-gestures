@@ -6,6 +6,7 @@ import sys
 import moveit_commander
 # Brings in the SimpleActionClient
 import actionlib
+import time
 # Brings in the .action file and messages used by the move base action
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from actionlib_msgs.msg import GoalStatus
@@ -67,6 +68,7 @@ class MoveBaseSecondSeq():
         print(data.data, "is what we got over here!")
         if data.data is True:
             arms_up()
+            time.sleep(5)
             arms_down()
             self.checker = True
             print("Starting the second node!")
@@ -74,19 +76,19 @@ class MoveBaseSecondSeq():
 
 
     def active_cb(self):
-        rospy.loginfo("Goal pose "+str(self.goal_cnt + 1)+" is now being processed by the Action Server...")
+        rospy.loginfo("Goal pose "+str(self.goal_cnt + 2)+" is now being processed by the Action Server...")
 
     def feedback_cb(self, feedback):
-        rospy.loginfo("Feedback for goal pose "+str(self.goal_cnt+1)+" received")
+        rospy.loginfo("Feedback for goal pose "+str(self.goal_cnt+2)+" received")
 
     def done_cb(self, status, result):
         self.goal_cnt += 1
         if status == 2:
             rospy.loginfo("Goal pose " + str(
-                self.goal_cnt) + " received a cancel request after it started executing, completed execution!")
+                self.goal_cnt + 1) + " received a cancel request after it started executing, completed execution!")
 
         if status == 3:
-            rospy.loginfo("Goal pose " + str(self.goal_cnt) + " reached")
+            rospy.loginfo("Goal pose " + str(self.goal_cnt+1) + " reached")
             if self.goal_cnt < len(self.pose_seq):
                 next_goal = MoveBaseGoal()
                 next_goal.target_pose.header.frame_id = "map"
@@ -101,13 +103,13 @@ class MoveBaseSecondSeq():
                 return
 
         if status == 4:
-            rospy.loginfo("Goal pose " + str(self.goal_cnt) + " was aborted by the Action Server")
-            rospy.signal_shutdown("Goal pose " + str(self.goal_cnt) + " aborted, shutting down!")
+            rospy.loginfo("Goal pose " + str(self.goal_cnt+1) + " was aborted by the Action Server")
+            rospy.signal_shutdown("Goal pose " + str(self.goal_cnt+1) + " aborted, shutting down!")
             return
 
         if status == 5:
-            rospy.loginfo("Goal pose " + str(self.goal_cnt) + " has been rejected by the Action Server")
-            rospy.signal_shutdown("Goal pose " + str(self.goal_cnt) + " rejected, shutting down!")
+            rospy.loginfo("Goal pose " + str(self.goal_cnt+1) + " has been rejected by the Action Server")
+            rospy.signal_shutdown("Goal pose " + str(self.goal_cnt+1) + " rejected, shutting down!")
             return
 
         if status == 8:
