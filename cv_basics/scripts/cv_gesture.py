@@ -4,6 +4,7 @@ from multiprocessing.connection import wait
 import sys
 import rospy
 import moveit_commander
+import time
 import moveit_msgs.msg
 import numpy
 import move_goal
@@ -15,6 +16,7 @@ from cv_basics.msg import FaceDetectionArray
 latch = False
 latch2 = False
 group_latch = False
+waved = False
 msg = False
 face_detections = [0] * 60
 # group_detections = [0] * 60
@@ -46,6 +48,7 @@ def gesture(detections):
     global latch2
     global group_latch
     global face_detections
+    global waved
 
     group_latch = False
 
@@ -74,8 +77,12 @@ def gesture(detections):
     if face_detection_percentage >= 0.8 and not latch:
         print('waving!')
         gesture_wave()
+        waved = True
         latch = True
     elif face_detection_percentage == 0.0:
+        if waved:
+            time.sleep(60)
+            waved = False
         print('reset')
         latch = False
 

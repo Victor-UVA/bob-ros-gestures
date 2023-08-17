@@ -1,10 +1,16 @@
 <launch>
+    <node name="webcam" pkg="cv_basics" type="image_publisher.py" output="screen">
+    </node>
+    <node name="image_subscriber" pkg="cv_basics" type="image_subscriber.py" output="screen">
+    </node>
+    <node name="cv_gesture" pkg="cv_basics" type="cv_gesture.py" output="screen">
+    </node>
     <node name="move_goal" pkg="cv_basics" type="move_goal.py" output="screen">
         <rosparam param="p_seq">[2, 2, 0]</rosparam>
         <rosparam param="yea_seq">[180]</rosparam>
     </node>
 
-    <node name="second_goal" pkg="cv_basics" type="second_goal.py" output="screen" required="true">
+    <node name="second_goal" pkg="cv_basics" type="second_goal.py" output="screen">
         <rosparam param="p_seq2">[0, 0, 0]</rosparam>
         <rosparam param="yea_seq2">[0]</rosparam>
     </node>
