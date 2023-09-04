@@ -5,6 +5,7 @@ import sys
 import rospy
 import moveit_commander
 import time
+import cv2
 import moveit_msgs.msg
 import numpy
 import move_goal
@@ -18,6 +19,7 @@ latch2 = False
 group_latch = False
 waved = False
 msg = False
+msg2 = False
 face_detections = [0] * 60
 # group_detections = [0] * 60
 
@@ -39,6 +41,7 @@ lhand_values = lhand_group.get_current_joint_values()
 rhand_values = rhand_group.get_current_joint_values()
 waist_values = w_group.get_current_joint_values()
 
+pub2 = rospy.Publisher('/start_video', Bool, queue_size=10)
 pub = rospy.Publisher('/is_ready_to_move', Bool, queue_size=10)
 
 
@@ -77,6 +80,7 @@ def gesture(detections):
     if face_detection_percentage >= 0.8 and not latch:
         print('waving!')
         gesture_wave()
+        # video()
         waved = True
         latch = True
     elif face_detection_percentage == 0.0:
@@ -97,6 +101,7 @@ def gesture(detections):
 
 def gesture_wave():
     global msg
+    global msg2
 
     # Make sure arms are set down
     rarm_values[0] = 0
@@ -119,6 +124,9 @@ def gesture_wave():
     plan2 = larm_group.plan()
     rarm_group.go(wait=True)
     larm_group.go(wait=True)
+
+    msg2 = True
+    pub2.publish(msg2)
 
     # Pick arm up and put it in wave location
     rarm_values[0] = -0.5
@@ -218,6 +226,34 @@ def gesture_bow():
 
     plan2 = w_group.plan()
     w_group.go(wait=True)
+
+
+def video():
+    file_name = "/home/andrew/Downloads/test2.mp4"
+    window_name = "window"
+    interframe_wait_ms = 30
+
+    cap = cv2.VideoCapture(file_name)
+    if not cap.isOpened():
+        print("Error: Could not open video.")
+        exit()
+
+    cv2.namedWindow(window_name, cv2.WND_PROP_FULLSCREEN)
+    cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
+    while (True):
+        ret, frame = cap.read()
+        if not ret:
+            print("Reached end of video, exiting.")
+            break
+
+        cv2.imshow(window_name, frame)
+        if cv2.waitKey(interframe_wait_ms) & 0x7F == ord('q'):
+            print("Exit requested.")
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
 
 
 def subscriber_node():

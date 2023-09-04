@@ -5,6 +5,8 @@
     </node>
     <node name="cv_gesture" pkg="cv_basics" type="cv_gesture.py" output="screen">
     </node>
+    <node name="listener" pkg="cv_basics" type="video.py" output="screen">
+    </node>
     <node name="move_goal" pkg="cv_basics" type="move_goal.py" output="screen">
         <rosparam param="p_seq">[2, 2, 0]</rosparam>
         <rosparam param="yea_seq">[180]</rosparam>
