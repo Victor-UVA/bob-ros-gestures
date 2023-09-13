@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy
 from sensor_msgs.msg import Image
@@ -112,8 +112,6 @@ class ImageSubscriber():
             self.hand_landmark_publisher = rospy.Publisher("/hand_landmark_results", HandArray, queue_size = 10)
             self.hand_landmarker_result = None
             self.hand_landmarker_helper = HandLandmarker.create_from_options(self.hand_landmarker_options)
-
-        
 
     def update_face_detector_result(self, result: FaceDetectorResult, output_image: mp.Image, timestamp_ms: int):
         self.face_detector_result = result

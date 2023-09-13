@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from multiprocessing.connection import wait
 import sys
@@ -9,10 +9,10 @@ import cv2
 import moveit_msgs.msg
 import numpy
 import move_goal
-
 from std_msgs.msg import Bool
 from cv_basics.msg import FaceDetection
 from cv_basics.msg import FaceDetectionArray
+
  
 latch = False
 latch2 = False
@@ -85,7 +85,7 @@ def gesture(detections):
         latch = True
     elif face_detection_percentage == 0.0:
         if waved:
-            time.sleep(60)
+            time.sleep(120)
             waved = False
         print('reset')
         latch = False
@@ -226,34 +226,6 @@ def gesture_bow():
 
     plan2 = w_group.plan()
     w_group.go(wait=True)
-
-
-def video():
-    file_name = "/home/andrew/Downloads/test2.mp4"
-    window_name = "window"
-    interframe_wait_ms = 30
-
-    cap = cv2.VideoCapture(file_name)
-    if not cap.isOpened():
-        print("Error: Could not open video.")
-        exit()
-
-    cv2.namedWindow(window_name, cv2.WND_PROP_FULLSCREEN)
-    cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-
-    while (True):
-        ret, frame = cap.read()
-        if not ret:
-            print("Reached end of video, exiting.")
-            break
-
-        cv2.imshow(window_name, frame)
-        if cv2.waitKey(interframe_wait_ms) & 0x7F == ord('q'):
-            print("Exit requested.")
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
 
 
 def subscriber_node():
