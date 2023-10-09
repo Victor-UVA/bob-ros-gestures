@@ -112,6 +112,8 @@ def gesture_wave():
     rarm_group.set_joint_value_target(rarm_values)
     rarm_group.set_max_velocity_scaling_factor(1)
 
+    print("HIIIIIIIIIIIII")
+
     larm_values[0] = 0
     larm_values[1] = 0
     larm_values[2] = 0
@@ -120,13 +122,19 @@ def gesture_wave():
     larm_group.set_joint_value_target(larm_values)
     larm_group.set_max_velocity_scaling_factor(1)
 
+    print("HIIIIIIIIIIIII HIIIIIIIIIIIIIIIIIII")
+
     plan = rarm_group.plan()
     plan2 = larm_group.plan()
     rarm_group.go(wait=True)
     larm_group.go(wait=True)
 
+    print("PUBLISHING TO START VIDEO")
+
     msg2 = True
     pub2.publish(msg2)
+
+    print("PUBLISHED")
 
     # Pick arm up and put it in wave location
     rarm_values[0] = -0.5
