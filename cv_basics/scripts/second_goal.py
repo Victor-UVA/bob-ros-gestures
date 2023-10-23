@@ -156,19 +156,19 @@ def arms_up():
         larm_group.go(wait=True)
 
         # Pick arm up and put it in gesture location
-        rarm_values[0] = -0.354
-        rarm_values[1] = 0.0
-        rarm_values[2] = 0.9734
-        rarm_values[3] = -1.32
-        rarm_values[7] = -0.87895
+        rarm_values[0] = 0
+        rarm_values[1] = 0
+        rarm_values[2] = -1
+        rarm_values[3] = -1.63
+        rarm_values[7] = -1.5
         rarm_group.set_joint_value_target(rarm_values)
 
         plan3 = rarm_group.plan()
         rarm_group.go(wait=True)
 
-        larm_values[0] = 0.0
-        larm_values[1] = 0.0
-        larm_values[2] = 0.9734
+        larm_values[0] = -0.28
+        larm_values[1] = 0.085
+        larm_values[2] = -0.9734
         larm_values[3] = -1.5
         larm_values[7] = 1.539
         larm_group.set_joint_value_target(larm_values)
@@ -179,15 +179,6 @@ def arms_up():
 
 def arms_down():
         # Put arms back
-        rarm_values[0] = 0
-        rarm_values[1] = 0
-        rarm_values[2] = 0
-        rarm_values[3] = 0
-        rarm_values[7] = 0
-        rarm_group.set_joint_value_target(rarm_values)
-
-        plan5 = rarm_group.plan()
-        rarm_group.go(wait=True)
 
         larm_values[0] = 0
         larm_values[1] = 0
@@ -200,6 +191,16 @@ def arms_down():
         larm_group.go(wait=True)
 
 
+        rarm_values[0] = 0
+        rarm_values[1] = 0
+        rarm_values[2] = 0
+        rarm_values[3] = 0
+        rarm_values[7] = 0
+        rarm_group.set_joint_value_target(rarm_values)
+
+        plan5 = rarm_group.plan()
+        rarm_group.go(wait=True)
+
 def video():
     pygame.init()
 
@@ -207,7 +208,7 @@ def video():
     screen_width, screen_height = 1080, 1920  # You can adjust these dimensions
 
     # Load the video file
-    video_file = "/home/andrew/Downloads/ThomasJefferson2.mp4"
+    video_file = "/home/andrew/Downloads/ThomasJeffersonThornton2.mp4"
     clip = VideoFileClip(video_file)
 
     # Calculate the aspect-ratio-preserving size for the video
@@ -237,7 +238,7 @@ def video():
     clock = pygame.time.Clock()
 
     # Play the video with audio
-    clip.preview(fps=10)
+    clip.preview(fps=15) # 10 for long rotunda video
 
     pygame.mouse.set_visible(True)
 
