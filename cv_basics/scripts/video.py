@@ -15,7 +15,7 @@ def callback(data):
         screen_width, screen_height = 1080, 1920  # You can adjust these dimensions
 
         # Load the video file
-        video_file = "/home/andrew/Downloads/ThomasJeffersonThornton.mp4"
+        video_file = "/home/andrew/Downloads/ThomasJefferson1.mp4"
         clip = VideoFileClip(video_file)
 
         # Calculate the aspect-ratio-preserving size for the video

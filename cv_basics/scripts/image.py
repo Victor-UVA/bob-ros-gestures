@@ -28,6 +28,9 @@ image = pygame.transform.rotate(image, 90)
 image_x = (screen_width - image_width) // 2
 image_y = (screen_height - image_height) // 2
 
+# Set the environment variable to control window position
+os.environ['SDL_VIDEO_WINDOW_POS'] = f"{1175},{200}"
+
 # Create a new Pygame window for the image
 image_screen = pygame.display.set_mode((screen_width * (16/9), screen_height * (9/16)))
 image_screen.blit(image, (image_x, image_y))
