@@ -165,7 +165,7 @@ class ImageSubscriber():
 
         if self.display:
             #  and not (self.landmark_faces or self.landmark_hands)
-            cv2.imshow("camera", finalImage)
+            # cv2.imshow("camera", finalImage)
             cv2.waitKey(1)
 
     # def face_landmarker(self, data):
